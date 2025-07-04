@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Beauty Finder - Product Recommendation Tool</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-color: #ff6b6b;
+            --secondary-color: #4ecdc4;
+            --accent-color: #45b7d1;
+            --bg-color: #f8f9fa;
+            --card-bg: rgba(255, 255, 255, 0.7);
+            --text-primary: #2c3e50;
+            --text-secondary: #7f8c8d;
+            --shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            --retro-orange: #ff8c42;
+            --retro-pink: #ff6b9d;
+            --retro-purple: #a8e6cf;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            line-height: 1.6;
+            color: var(--text-primary);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 20% 20%, rgba(255, 107, 107, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(69, 183, 209, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 40% 60%, rgba(255, 140, 66, 0.1) 0%, transparent 50%);
+            z-index: -1;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+            padding: 2rem 0;
+        }
+
+        .logo {
+            font-size: 3rem;
+            font-weight: 700;
+            background: linear-gradient(45deg, var(--primary-color), var(--retro-orange), var(--retro-pink));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 1rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .tagline {
+            font-size: 1.2rem;
+            color: var(--bg-color);
+            font-weight: 300;
+            margin-bottom: 2rem;
+        }
+
+        /* Navigation */
+        .nav-tabs {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-bottom: 3rem;
+            flex-wrap: wrap;
+        }
+
+        .nav-tab {
+            padding: 0.8rem 1.5rem;
+            background: var(--card-bg);
+            border: 2px solid transparent;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            color: var(--text-primary);
+            backdrop-filter: blur(10px);
+            box-shadow: var(--shadow);
+        }
+
+        .nav-tab:hover {
+            transform: translateY(-2px);
+            border-color: var(--primary-color);
+            box-shadow: 0 12px 40px rgba(255, 107, 107, 0.2);
+        }
+
+        .nav-tab.active {
+            background: linear-gradient(135deg, var(--primary-color), var(--retro-orange));
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        /* Main Content */
+        .content {
+            display: none;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+
+        .content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Recommendation & URL Section */
+        .recommendation-section, .url-section {
+            background: var(--card-bg);
+            border-radius: 20px;
+            padding: 2.5rem;
+            margin-bottom: 2rem;
+            box-shadow: var(--shadow);
+            backdrop-filter: blur(10px);
+        }
+
+        .section-title {
+            font-size: 2rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 1rem;
+            border: 2px solid #e9ecef;
+            border-radius: 12px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.8);
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(255, 107, 107, 0.1);
+            transform: translateY(-1px);
+        }
+
+        .submit-btn {
+            background: linear-gradient(135deg, var(--primary-color), var(--retro-orange));
+            color: white;
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 25px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            box-shadow: var(--shadow);
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 40px rgba(255, 107, 107, 0.3);
+        }
+
+        .url-input-group {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .url-input {
+            flex: 1;
+            padding: 1rem;
+            border: 2px solid #e9ecef;
+            border-radius: 12px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .url-input:focus {
+            outline: none;
+            border-color: var(--secondary-color);
+            box-shadow: 0 0 0 3px rgba(78, 205, 196, 0.1);
+        }
+
+        .add-url-btn {
+            background: var(--secondary-color);
+            color: white;
+            padding: 1rem 1.5rem;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .add-url-btn:hover {
+            background: #3ac0b8;
+            transform: translateY(-1px);
+        }
+
+        .url-list { margin-bottom: 1rem; }
+
+        .url-item {
+            background: rgba(78, 205, 196, 0.1);
+            padding: 1rem;
+            border-radius: 12px;
+            margin-bottom: 0.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+        .url-item:hover { transform: translateX(5px); }
+        .url-text { font-size: 0.9rem; color: var(--text-secondary); word-break: break-all; }
+        .remove-url {
+            background: var(--primary-color);
+            color: white; border: none; border-radius: 50%;
+            width: 30px; height: 30px; cursor: pointer;
+            font-size: 1rem; transition: all 0.3s ease;
+        }
+        .remove-url:hover { background: #ff5252; transform: scale(1.1); }
+
+        /* Results Section */
+        .results-section {
+            background: var(--card-bg);
+            border-radius: 20px; padding: 2rem;
+            margin-top: 2rem; box-shadow: var(--shadow);
+            display: none;
+        }
+        .results-section.show { display: block; animation: slideUp 0.5s ease-out; }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+
+        .product-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem; margin-top: 2rem;
+        }
+
+        .product-card {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(248, 249, 250, 0.9));
+            border-radius: 16px; padding: 2rem;
+            text-align: center; transition: all 0.3s ease;
+            border: 2px solid transparent; backdrop-filter: blur(10px);
+            position: relative; overflow: hidden;
+        }
+        .product-card:hover { transform: translateY(-10px); box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15); border-color: var(--primary-color); }
+        .product-image {
+            width: 100px; height: 100px;
+            background: linear-gradient(135deg, var(--primary-color), var(--retro-orange));
+            border-radius: 50%; margin: 0 auto 1.5rem;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 2.5rem; box-shadow: 0 8px 20px rgba(255, 107, 107, 0.3);
+        }
+        .product-name { font-weight: 600; font-size: 1.1rem; margin-bottom: 0.5rem; color: var(--text-primary); }
+        .product-brand { color: var(--primary-color); font-weight: 500; margin-bottom: 0.5rem; }
+        .product-price { font-size: 1.2rem; font-weight: 700; color: var(--secondary-color); margin-bottom: 1rem; }
+        .product-description { font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 1.5rem; line-height: 1.5; }
+        .product-link {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--accent-color), var(--secondary-color));
+            color: white; padding: 0.7rem 1.5rem; text-decoration: none;
+            border-radius: 20px; font-weight: 500; transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(69, 183, 209, 0.3);
+        }
+        .product-link:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(69, 183, 209, 0.4); }
+
+        /* Brands & About Section */
+        .brands-grid, .about-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem; margin-top: 2rem;
+        }
+        .brand-card, .feature-card {
+            background: var(--card-bg); border-radius: 16px;
+            padding: 2rem; text-align: center;
+            transition: all 0.3s ease; box-shadow: var(--shadow);
+            border: 2px solid transparent;
+        }
+        .brand-card:hover, .feature-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--retro-orange);
+            box-shadow: 0 15px 30px rgba(255, 140, 66, 0.2);
+        }
+        .brand-logo {
+            width: 80px; height: 80px;
+            background: linear-gradient(135deg, var(--retro-orange), var(--retro-pink));
+            border-radius: 50%; margin: 0 auto 1rem;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 2rem; color: white; font-weight: 700;
+            box-shadow: 0 8px 20px rgba(255, 140, 66, 0.3);
+        }
+        .brand-name, .feature-card h3 { font-size: 1.3rem; font-weight: 600; margin-bottom: 0.5rem; color: var(--text-primary); }
+        .brand-description, .feature-card p { font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 1.5rem; line-height: 1.5; }
+        .brand-link {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--retro-orange), var(--retro-pink));
+            color: white; padding: 0.7rem 1.5rem; text-decoration: none;
+            border-radius: 20px; font-weight: 500; transition: all 0.3s ease;
+        }
+        .brand-link:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(255, 140, 66, 0.4); }
+        .feature-card .product-image { margin-bottom: 1rem; } /* Reuse styling */
+
+        /* Loading Animation */
+        .loading { text-align: center; padding: 3rem; display: none; }
+        .loading.show { display: block; }
+        .spinner {
+            width: 60px; height: 60px;
+            border: 4px solid rgba(255, 107, 107, 0.2);
+            border-top: 4px solid var(--primary-color);
+            border-radius: 50%; animation: spin 1s linear infinite;
+            margin: 0 auto 1.5rem;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .loading-text { font-size: 1.1rem; color: var(--text-secondary); font-weight: 500; }
+
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .container { padding: 1rem; }
+            .logo { font-size: 2.5rem; }
+            .nav-tabs { flex-direction: column; align-items: center; }
+            .nav-tab { width: 100%; max-width: 300px; text-align: center; }
+            .form-grid, .product-grid, .brands-grid, .about-grid { grid-template-columns: 1fr; }
+            .url-input-group { flex-direction: column; }
+        }
+        .text-center { text-align: center; }
+        .mb-2 { margin-bottom: 2rem; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1 class="logo">🌟 Beauty Finder</h1>
+            <p class="tagline">Your AI-powered beauty product recommendation tool</p>
+        </header>
+
+        <nav class="nav-tabs">
+            <div class="nav-tab active" onclick="showTab('recommend', event)">Get Recommendations</div>
+            <div class="nav-tab" onclick="showTab('brands', event)">Featured Brands</div>
+            <div class="nav-tab" onclick="showTab('about', event)">How It Works</div>
+        </nav>
+
+        <!-- Recommendation Tab -->
+        <div id="recommend" class="content active">
+            <div class="url-section">
+                <h2 class="section-title">1. Add Product URLs (Optional)</h2>
+                <p class="text-center mb-2">Add Nykaa, Mamaearth, or other beauty product URLs for context</p>
+                <div class="url-input-group">
+                    <input type="url" id="urlInput" class="url-input" placeholder="https://www.nykaa.com/product/...">
+                    <button class="add-url-btn" onclick="addURL()">Add URL</button>
+                </div>
+                <div id="urlList" class="url-list"></div>
+            </div>
+
+            <div class="recommendation-section">
+                <h2 class="section-title">2. Tell Us Your Preferences</h2>
+                <div class="form-grid">
+                    <div>
+                        <div class="form-group">
+                            <label for="skinType">Skin Type</label>
+                            <select id="skinType">
+                                <option value="any">Any</option>
+                                <option value="oily">Oily</option>
+                                <option value="dry">Dry</option>
+                                <option value="combination">Combination</option>
+                                <option value="sensitive">Sensitive</option>
+                                <option value="normal">Normal</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="skinConcerns">Primary Concern</label>
+                            <select id="skinConcerns">
+                                <option value="any">Any</option>
+                                <option value="acne">Acne & Breakouts</option>
+                                <option value="aging">Anti-Aging</option>
+                                <option value="pigmentation">Dark Spots & Pigmentation</option>
+                                <option value="dryness">Dryness & Dehydration</option>
+                                <option value="dullness">Dullness & Uneven Tone</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="form-group">
+                            <label for="category">Product Category</label>
+                            <select id="category">
+                                <option value="any">Any</option>
+                                <option value="skincare">Skincare</option>
+                                <option value="makeup">Makeup</option>
+                                <option value="haircare">Hair Care</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="query">What are you looking for?</label>
+                            <textarea id="query" rows="3" placeholder="e.g., 'a gentle cleanser for sensitive skin', 'a long-lasting red lipstick', 'shampoo for frizzy hair'"></textarea>
+                        </div>
+                    </div>
+                </div>
+                <button class="submit-btn" onclick="getRecommendations()">✨ Find My Perfect Products</button>
+            </div>
+
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <div class="loading-text">Our AI beauty expert is on the case...</div>
+            </div>
+
+            <div id="results" class="results-section">
+                <h2 class="section-title">Your Personalized Recommendations</h2>
+                <div id="recommendationResults" class="product-grid"></div>
+            </div>
+        </div>
+
+        <!-- Brands Tab -->
+        <div id="brands" class="content">
+            <div class="recommendation-section">
+                <h2 class="section-title">Featured Beauty Brands</h2>
+                <p class="text-center mb-2">Discover products from India's most trusted beauty brands</p>
+                <div class="brands-grid">
+                    <div class="brand-card"><div class="brand-logo">N</div><div class="brand-name">Nykaa</div><div class="brand-description">India's leading beauty destination with makeup, skincare, and personal care products.</div><a href="https://www.nykaa.com" target="_blank" class="brand-link">Visit Store</a></div>
+                    <div class="brand-card"><div class="brand-logo">M</div><div class="brand-name">Mamaearth</div><div class="brand-description">Natural, toxin-free skincare and baby care products made with organic ingredients.</div><a href="https://mamaearth.in" target="_blank" class="brand-link">Visit Store</a></div>
+                    <div class="brand-card"><div class="brand-logo">P</div><div class="brand-name">Plum</div><div class="brand-description">100% vegan, cruelty-free skincare products backed by science.</div><a href="https://www.plumgoodness.com" target="_blank" class="brand-link">Visit Store</a></div>
+                    <div class="brand-card"><div class="brand-logo">L</div><div class="brand-name">Lakmé</div><div class="brand-description">India's premier makeup brand offering trend-setting cosmetics since 1952.</div><a href="https://www.lakmeindia.com" target="_blank" class="brand-link">Visit Store</a></div>
+                    <div class="brand-card"><div class="brand-logo">🌿</div><div class="brand-name">Minimalist</div><div class="brand-description">Evidence-based skincare with effective ingredients at affordable prices.</div><a href="https://beminimalist.co" target="_blank" class="brand-link">Visit Store</a></div>
+                    <div class="brand-card"><div class="brand-logo">S</div><div class="brand-name">SUGAR</div><div class="brand-description">Bold, trendy makeup products designed for the modern Indian woman.</div><a href="https://in.sugarcosmetics.com" target="_blank" class="brand-link">Visit Store</a></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- About Tab -->
+        <div id="about" class="content">
+            <div class="recommendation-section">
+                <h2 class="section-title">How Beauty Finder Works</h2>
+                <div class="about-grid">
+                    <div class="feature-card"><div class="product-image">🔗</div><h3>1. Add URLs (Optional)</h3><p>Paste URLs from sites like Nykaa or Mamaearth to give our AI context on products you're considering.</p></div>
+                    <div class="feature-card"><div class="product-image">📝</div><h3>2. Share Preferences</h3><p>Tell us your skin type, main concerns, and exactly what kind of product you're looking for.</p></div>
+                    <div class="feature-card"><div class="product-image">🤖</div><h3>3. AI Analysis</h3><p>Our AI expert analyzes your needs, using its vast knowledge of beauty products to find the perfect matches.</p></div>
+                    <div class="feature-card"><div class="product-image">✨</div><h3>4. Get Recommendations</h3><p>Receive a personalized list of 3-4 top products, complete with descriptions and links.</p></div>
+                </div>
+                <div style="text-align: center; margin-top: 2rem;">
+                    <button class="submit-btn" onclick="showTab('recommend', event)" style="width: auto; padding: 1rem 3rem;">Start Finding Products</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- STATE MANAGEMENT ---
+        let urls = [];
+        let currentTab = 'recommend';
+
+        // --- UI & NAVIGATION ---
+        function showTab(tabName, event) {
+            document.querySelectorAll('.content').forEach(content => content.classList.remove('active'));
+            document.querySelectorAll('.nav-tab').forEach(tab => tab.classList.remove('active'));
+            document.getElementById(tabName).classList.add('active');
+            if (event) {
+                event.currentTarget.classList.add('active');
+            } else {
+                // Handle case where function is called without an event (e.g., from another button)
+                document.querySelector(`.nav-tab[onclick*="'${tabName}'"]`).classList.add('active');
+            }
+            currentTab = tabName;
+        }
+
+        function addURL() {
+            const urlInput = document.getElementById('urlInput');
+            const url = urlInput.value.trim();
+            if (url && isValidURL(url)) {
+                if (!urls.includes(url)) {
+                    urls.push(url);
+                    renderURLList();
+                    urlInput.value = '';
+                    showNotification('URL added successfully!', 'success');
+                } else {
+                    showNotification('URL already exists!', 'warning');
+                }
+            } else {
+                showNotification('Please enter a valid URL.', 'error');
+            }
+        }
+
+        function removeURL(index) {
+            urls.splice(index, 1);
+            renderURLList();
+            showNotification('URL removed.', 'info');
+        }
+
+        function renderURLList() {
+            const urlList = document.getElementById('urlList');
+            if (urls.length === 0) {
+                urlList.innerHTML = `<p class="text-center text-secondary" style="font-style: italic; padding: 1rem 0;">No URLs added yet.</p>`;
+                return;
+            }
+            urlList.innerHTML = urls.map((url, index) => `
+                <div class="url-item">
+                    <span class="url-text">${url}</span>
+                    <button class="remove-url" onclick="removeURL(${index})">&times;</button>
+                </div>`).join('');
+        }
+
+        function isValidURL(string) {
+            try {
+                new URL(string);
+                return true;
+            } catch (_) {
+                return false;
+            }
+        }
+
+        // --- CORE RECOMMENDATION LOGIC ---
+        async function getRecommendations() {
+            const query = document.getElementById('query').value.trim();
+            if (!query) {
+                showNotification('Please tell us what you are looking for in the text box.', 'error');
+                return;
+            }
+
+            const loading = document.getElementById('loading');
+            const resultsSection = document.getElementById('results');
+            loading.classList.add('show');
+            resultsSection.classList.remove('show');
+            resultsSection.scrollIntoView({ behavior: 'smooth' });
+
+            const userPreferences = {
+                skinType: document.getElementById('skinType').value,
+                skinConcerns: document.getElementById('skinConcerns').value,
+                category: document.getElementById('category').value,
+                query: query,
+                urls: urls
+            };
+
+            try {
+                // Construct the prompt for the Gemini API
+                const prompt = `
+                    You are a helpful and friendly Indian beauty product recommendation expert. A user has provided their preferences and a query. Your task is to recommend 3-4 excellent products available in the Indian market that match their needs.
+
+                    User's Product URLs for context (if any):
+                    ${userPreferences.urls.length > 0 ? userPreferences.urls.map(u => `- ${u}`).join('\n') : 'None provided.'}
+
+                    User's Profile:
+                    - Skin Type: ${userPreferences.skinType}
+                    - Primary Concern: ${userPreferences.skinConcerns}
+                    - Desired Product Category: ${userPreferences.category}
+
+                    User's Specific Request:
+                    "${userPreferences.query}"
+
+                    Instructions:
+                    1. Based on your extensive knowledge of products from brands like Nykaa, Mamaearth, Plum, Minimalist, Lakmé, SUGAR Cosmetics, and others popular in India, identify 3-4 products that are the best fit.
+                    2. For each product, provide details in a JSON array. The "description" should explain WHY it's a good match for the user's specific request.
+                    3. Ensure the entire response is ONLY the JSON array, with no other text before or after it.
+
+                    JSON Schema:
+                    [
+                      {
+                        "name": "Product Name",
+                        "brand": "Brand Name",
+                        "price": "₹XXX",
+                        "description": "A brief, compelling description of why this product is a good match for the user.",
+                        "link": "A valid, working link to a popular store where the product can be purchased (e.g., Nykaa, Amazon.in, or the brand's own site).",
+                        "icon": "A single emoji that represents the product (e.g., 🍊, 🌿, 💄, 🍵)."
+                      }
+                    ]
+                `;
+
+                // API Call to Gemini
+                const apiKey = ""; // API key will be injected by the environment
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+                
+                const payload = {
+                    contents: [{ role: "user", parts: [{ text: prompt }] }]
+                };
+
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) {
+                    throw new Error(`API error! Status: ${response.status}`);
+                }
+
+                const result = await response.json();
+                
+                if (result.candidates && result.candidates[0].content && result.candidates[0].content.parts[0]) {
+                    const textResponse = result.candidates[0].content.parts[0].text;
+                    // Clean the response to ensure it's valid JSON
+                    const jsonString = textResponse.trim().replace(/^```json/, '').replace(/```$/, '').trim();
+                    const products = JSON.parse(jsonString);
+                    renderRecommendations(products);
+                } else {
+                    throw new Error("No valid content received from API.");
+                }
+
+            } catch (error) {
+                console.error("Error fetching recommendations:", error);
+                showNotification('Sorry, something went wrong. Please try again.', 'error');
+                renderRecommendations([]); // Show an empty state
+            } finally {
+                loading.classList.remove('show');
+                resultsSection.classList.add('show');
+            }
+        }
+
+        function renderRecommendations(products) {
+            const recommendationResults = document.getElementById('recommendationResults');
+            if (!products || products.length === 0) {
+                recommendationResults.innerHTML = `<p class="text-center" style="grid-column: 1 / -1;">Sorry, we couldn't find any specific recommendations for your query. Please try being more specific or adjusting your filters.</p>`;
+                return;
+            }
+
+            recommendationResults.innerHTML = products.map(product => `
+                <div class="product-card">
+                    <div class="product-image">${product.icon || '✨'}</div>
+                    <div class="product-name">${product.name}</div>
+                    <div class="product-brand">${product.brand}</div>
+                    <div class="product-price">${product.price}</div>
+                    <p class="product-description">${product.description}</p>
+                    <a href="${product.link}" target="_blank" class="product-link">View Product</a>
+                </div>
+            `).join('');
+        }
+
+        // --- UTILITY: NOTIFICATIONS ---
+        function showNotification(message, type = 'info') {
+            const notificationContainer = document.createElement('div');
+            Object.assign(notificationContainer.style, {
+                position: 'fixed', bottom: '20px', right: '20px', zIndex: '1000'
+            });
+
+            const notification = document.createElement('div');
+            notification.textContent = message;
+            const styles = {
+                padding: '1rem 1.5rem', borderRadius: '12px', color: 'white',
+                fontWeight: '500', boxShadow: '0 8px 20px rgba(0,0,0,0.2)',
+                transition: 'all 0.5s ease', opacity: '0', transform: 'translateY(20px)'
+            };
+            const typeStyles = {
+                success: { background: 'linear-gradient(135deg, #2ecc71, #27ae60)' },
+                error: { background: 'linear-gradient(135deg, #e74c3c, #c0392b)' },
+                warning: { background: 'linear-gradient(135deg, #f39c12, #e67e22)' },
+                info: { background: 'linear-gradient(135deg, #3498db, #2980b9)' }
+            };
+            Object.assign(notification.style, styles, typeStyles[type]);
+            
+            notificationContainer.appendChild(notification);
+            document.body.appendChild(notificationContainer);
+
+            setTimeout(() => {
+                notification.style.opacity = '1';
+                notification.style.transform = 'translateY(0)';
+            }, 10);
+
+            setTimeout(() => {
+                notification.style.opacity = '0';
+                notification.style.transform = 'translateY(20px)';
+                setTimeout(() => document.body.removeChild(notificationContainer), 500);
+            }, 4000);
+        }
+
+        // --- INITIAL RENDER ---
+        document.addEventListener('DOMContentLoaded', () => {
+            renderURLList();
+        });
+    </script>
+</body>
+</html>
