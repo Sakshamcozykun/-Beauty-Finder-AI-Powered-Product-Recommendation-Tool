@@ -496,10 +496,9 @@
             document.querySelectorAll('.content').forEach(content => content.classList.remove('active'));
             document.querySelectorAll('.nav-tab').forEach(tab => tab.classList.remove('active'));
             document.getElementById(tabName).classList.add('active');
-            if (event) {
+            if (event && event.currentTarget) {
                 event.currentTarget.classList.add('active');
             } else {
-                // Handle case where function is called without an event (e.g., from another button)
                 document.querySelector(`.nav-tab[onclick*="'${tabName}'"]`).classList.add('active');
             }
             currentTab = tabName;
@@ -560,8 +559,11 @@
 
             const loading = document.getElementById('loading');
             const resultsSection = document.getElementById('results');
+            const recommendationResults = document.getElementById('recommendationResults');
+            
             loading.classList.add('show');
             resultsSection.classList.remove('show');
+            recommendationResults.innerHTML = ''; // Clear previous results
             resultsSection.scrollIntoView({ behavior: 'smooth' });
 
             const userPreferences = {
@@ -573,7 +575,6 @@
             };
 
             try {
-                // Construct the prompt for the Gemini API
                 const prompt = `
                     You are a helpful and friendly Indian beauty product recommendation expert. A user has provided their preferences and a query. Your task is to recommend 3-4 excellent products available in the Indian market that match their needs.
 
@@ -591,7 +592,8 @@
                     Instructions:
                     1. Based on your extensive knowledge of products from brands like Nykaa, Mamaearth, Plum, Minimalist, Lakmé, SUGAR Cosmetics, and others popular in India, identify 3-4 products that are the best fit.
                     2. For each product, provide details in a JSON array. The "description" should explain WHY it's a good match for the user's specific request.
-                    3. Ensure the entire response is ONLY the JSON array, with no other text before or after it.
+                    
+                    IMPORTANT: Your entire response must be ONLY the JSON array. Do not include any other text, explanations, or markdown formatting like \`\`\`json. Start your response with '[' and end it with ']'.
 
                     JSON Schema:
                     [
@@ -606,7 +608,6 @@
                     ]
                 `;
 
-                // API Call to Gemini
                 const apiKey = ""; // API key will be injected by the environment
                 const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
                 
@@ -628,18 +629,33 @@
                 
                 if (result.candidates && result.candidates[0].content && result.candidates[0].content.parts[0]) {
                     const textResponse = result.candidates[0].content.parts[0].text;
-                    // Clean the response to ensure it's valid JSON
-                    const jsonString = textResponse.trim().replace(/^```json/, '').replace(/```$/, '').trim();
-                    const products = JSON.parse(jsonString);
-                    renderRecommendations(products);
+                    
+                    const startIndex = textResponse.indexOf('[');
+                    const endIndex = textResponse.lastIndexOf(']');
+
+                    if (startIndex === -1 || endIndex === -1) {
+                        console.error("Invalid response format from API. Raw response:", textResponse);
+                        throw new Error("Could not find a JSON array in the API response.");
+                    }
+
+                    const jsonString = textResponse.substring(startIndex, endIndex + 1);
+                    
+                    try {
+                        const products = JSON.parse(jsonString);
+                        renderRecommendations(products);
+                    } catch (parseError) {
+                        console.error("Failed to parse JSON. Raw string:", jsonString, "Error:", parseError);
+                        throw new Error("The AI returned a malformed response. Please try again.");
+                    }
                 } else {
-                    throw new Error("No valid content received from API.");
+                    console.error("Unexpected API response structure:", result);
+                    throw new Error("No valid content received from the AI. It might be busy.");
                 }
 
             } catch (error) {
                 console.error("Error fetching recommendations:", error);
-                showNotification('Sorry, something went wrong. Please try again.', 'error');
-                renderRecommendations([]); // Show an empty state
+                showNotification('Sorry, an error occurred. Please try again.', 'error');
+                recommendationResults.innerHTML = `<p class="text-center" style="grid-column: 1 / -1; color: var(--primary-color);">An error occurred: ${error.message}<br>Please try rephrasing your query or try again later.</p>`;
             } finally {
                 loading.classList.remove('show');
                 resultsSection.classList.add('show');
@@ -649,7 +665,7 @@
         function renderRecommendations(products) {
             const recommendationResults = document.getElementById('recommendationResults');
             if (!products || products.length === 0) {
-                recommendationResults.innerHTML = `<p class="text-center" style="grid-column: 1 / -1;">Sorry, we couldn't find any specific recommendations for your query. Please try being more specific or adjusting your filters.</p>`;
+                recommendationResults.innerHTML = `<p class="text-center" style="grid-column: 1 / -1;">Our AI couldn't find a perfect match for your specific query. Please try rephrasing or adjusting your filters.</p>`;
                 return;
             }
 
